@@ -16,7 +16,7 @@ jobs:
         image: postgres:15
         env:
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: password
+          POSTGRES_PASSWORD: toor
           POSTGRES_DB: clothing_store
         ports:
           - 5432:5432
