@@ -9,16 +9,6 @@ import { typeOrmConfigAsync } from './common/config/typeorm.config';
 
 @Module({
   imports: [
-    // TypeOrmModule.forRoot({
-    //   type: 'postgres',
-    //   host: 'localhost',
-    //   port: 5432,
-    //   username: 'postgres',
-    //   password: 'toor',
-    //   database: 'clothing_store',
-    //   autoLoadEntities: true,
-    //   synchronize: true,
-    // }),
     TypeOrmModule.forRootAsync(typeOrmConfigAsync),
     AuthModule,
     UsersModule,

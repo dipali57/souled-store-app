@@ -13,4 +13,13 @@ export class Product {
 
   @Column('decimal')
   price: number;
+
+  @Column()
+  stock: number;
+
+  @Column()
+  imageUrl: string;
+
+  @Column()
+  category: string;
 }
