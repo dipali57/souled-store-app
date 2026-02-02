@@ -1,11 +1,20 @@
-import { Controller, Post, Body, Request, UseGuards, Get } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Res,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { Roles } from './decorators/roles.decorator';
-import { UserRole } from 'src/common/enums/user-role.enum';
 import { CreateUserDTO } from 'src/users/dto/create-user.dto';
-import { LocalAuthGuard } from './guards/local.guard';
 import { ResetPassDTO } from 'src/users/dto/reset-pass.dto';
 import { LoginDTO } from 'src/users/dto/login.dto';
+import { Request, Response } from 'express';
+import { CurrentUser } from './decorators/user.decorator';
+import { User } from 'src/users/entities/user.entity';
+import { JwtAuthGuard } from './guards/jwt-auth.guards';
 
 @Controller('auth')
 export class AuthController {
@@ -16,17 +25,15 @@ export class AuthController {
     return this.authService.signup(createUserDto);
   }
 
-  @UseGuards(LocalAuthGuard)
-  @Post('login')
-  async login(@Body() loginDTO) {
-    console.log('req:',loginDTO);
-    return this.authService.login(loginDTO);
-  }
-  
-  @UseGuards(LocalAuthGuard)
   @Post('signin')
-  async signIn(@Body() loginDto: LoginDTO) {
-    return this.authService.signIn(loginDto);
+  async signIn(@Body() loginDto: LoginDTO, @Res() res: Response) {
+    const { token, user } = await this.authService.signIn(loginDto);
+    res.cookie('IsAuthenticated', true, { maxAge: 2 * 60 * 60 * 1000 });
+    res.cookie('Authentication', token, {
+      httpOnly: true,
+      maxAge: 2 * 60 * 60 * 1000,
+    });
+    return res.send({ success: true, user });
   }
 
   @Post('forgot-password')
@@ -39,9 +46,17 @@ export class AuthController {
     return this.authService.resetPassword(body);
   }
 
-  @Get('dashboard')
-  @Roles(UserRole.ADMIN)
-  async getAdminDashboard() {
-    return { message: 'Welcome to Admin Dashboard' };
+  @Get('status')
+  @UseGuards(JwtAuthGuard)
+  async authStatus(@Req() req: Request, @CurrentUser() user: User) {
+    const isAuth = req.cookies['IsAuthenticated'] === 'true';
+    return { isAuthenticated: isAuth, status: !!user, user };
+  }
+
+  @Post('logout')
+  logout(@Req() req: Request, @Res() res: Response) {
+    res.clearCookie('Authentication');
+    res.clearCookie('IsAuthenticated');
+    return res.status(200).send({ success: true });
   }
 }

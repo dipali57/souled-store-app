@@ -8,6 +8,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   }
 
   handleRequest(err, user, info) {
+    if (info) console.log('Auth Error Detail:', info.message);
     if (err || !user) {
       throw new UnauthorizedException('Invalid or expired token');
     }
