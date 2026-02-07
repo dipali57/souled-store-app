@@ -1,24 +1,106 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Equal, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Cart } from './entities/cart.entity';
-
+import { User } from 'src/users/entities/user.entity';
+import { CreateCartDto } from './dto/create-cart.dto';
+import { CartItemsService } from 'src/cart-items/cart-items.service';
+import { RemoveFromCartDTO } from './dto/remove-from-cart.dto';
+import { UpdateCartDto } from './dto/update-cart.dto';
 
 @Injectable()
 export class CartService {
-  constructor(@InjectRepository(Cart) private cartRepo: Repository<Cart>) {}
+  constructor(
+    @InjectRepository(Cart) private readonly cartRepository: Repository<Cart>,
+    private readonly cartItemsService: CartItemsService,
+  ) {}
 
-  async getUserCart(userId: number) {
-    // return this.cartRepo.find({ where: { user: userId } });
-    return this.cartRepo.find({ where: { user: {id: userId} } });
+
+  private async getUserCartEntity(userId: number): Promise<Cart | null> {
+    const cart = await this.cartRepository.findOne({
+      where: { user: { id: userId } },
+      relations: ['cartItems', 'cartItems.product'],
+    });
+    return cart;
   }
 
-  async addToCart(userId: number, productId: number, quantity: number) {
-    const cartItem = this.cartRepo.create({ user: {id: userId}, product: {id: productId}, quantity });
-    return this.cartRepo.save(cartItem);
+  async addToCart(addToCartDto: CreateCartDto, user: User) {
+    let cart = await this.getUserCartEntity(user.id);
+
+    if (!cart) {
+      cart = this.cartRepository.create({
+        user: { id: user.id },
+        cartItems: [],
+      });
+      await this.cartRepository.save(cart);
+    }
+
+    // Add the cart item using CartItemsService
+    await this.cartItemsService.addCartItem({
+      productId: addToCartDto.productId,
+      cartId: cart.id,
+    });
+
+    // Return the updated cart with cart items and their products
+    return await this.getUserCartEntity(user.id);
   }
 
-  async removeFromCart(userId: number, productId: number) {
-    return this.cartRepo.delete({ user: {id: userId}, product: {id: productId} });
+  async removeFromCart(removeCartDto: RemoveFromCartDTO,user:User) {
+    const {productId } = removeCartDto;
+
+    // Find the user's cart
+    const cart = await this.getUserCartEntity(user.id);
+    if (!cart) {
+      throw new NotFoundException('Cart not found for this user.');
+    }
+    // Forward the cartId and productId to CartItemsService
+    return this.cartItemsService.removeCartItem({
+      cartId: cart.id,
+      productId,
+    });
+  }
+
+  async updateCart(updateCartDto: UpdateCartDto,user:User) {
+    const { productId, quantity } = updateCartDto;
+
+    // Find the cart associated with the user
+    const cart = await this.getUserCartEntity(user.id);
+    if (!cart) {
+      throw new NotFoundException('Cart not found for this user.');
+    }
+
+    // Call CartItemsService to update the quantity of the product
+    await this.cartItemsService.updateCartItemQuantity({
+      cartId: cart.id,
+      productId,
+      quantity,
+    });
+
+    // Return the updated cart with cart items and their products
+    return await this.getUserCartEntity(user.id);
+  }
+
+  async getUserCart(user:User) {
+    // Reuse the helper method to find the cart associated with the user
+    const cart = await this.getUserCartEntity(user.id);
+    if (!cart) {
+      throw new NotFoundException('Cart not found for this user.');
+    }
+    return cart;
+  }
+
+  async clearCart(userId: number): Promise<void> {
+    // Step 1: Find the user's cart
+    const cart = await this.getUserCartEntity(userId);
+
+    if (!cart) {
+      throw new NotFoundException('Cart not found for this user.');
+    }
+
+    // Step 2: Forward the cartId to clean the cart items
+    await this.cartItemsService.clearCartItems(cart.id);
+
+    // Step 3: Delete the cart
+    await this.cartRepository.delete(cart.id);
   }
 }

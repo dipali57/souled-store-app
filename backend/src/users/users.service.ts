@@ -24,7 +24,13 @@ export class UsersService {
   }
   
   async findUserByEmail(email: string) {
-    return await this.usersRepository.findOne({ where: { email } });
+    // return await this.usersRepository.findOne({ where: { email } });
+    const user = await this.usersRepository
+    .createQueryBuilder('user')
+    .addSelect('user.password')
+    .where('user.email = :email', { email: email })
+    .getOne();
+    return user;
   }
 
   async findUser(username: string): Promise<User> {

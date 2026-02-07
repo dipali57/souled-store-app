@@ -8,7 +8,7 @@ import * as path from 'path';
 export const typeOrmConfigAsync: TypeOrmModuleAsyncOptions = {
   imports: [
     ConfigModule.forRoot({
-      envFilePath: ['.env'],
+      envFilePath: '.env',
       isGlobal: true,
     }),
   ],

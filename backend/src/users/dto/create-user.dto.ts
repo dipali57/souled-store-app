@@ -12,7 +12,4 @@ export class CreateUserDTO {
   @IsNotEmpty()
   @IsString()
   password: string;
-
-  @IsNotEmpty()
-  roles: string[];
 }

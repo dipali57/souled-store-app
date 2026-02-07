@@ -1,4 +1,5 @@
 import { IsNotEmpty, IsNumber, IsString } from '@nestjs/class-validator';
+import { IsOptional } from '@nestjs/class-validator';
 
 export class CreateProductDTO {
   @IsNotEmpty()
@@ -17,11 +18,11 @@ export class CreateProductDTO {
   @IsNumber()
   stock: number;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  imageUrl: string;
+  image?: string;
 
+  @IsNumber()
   @IsNotEmpty()
-  @IsString()
-  category: string;
+  categoryId: number;
 }

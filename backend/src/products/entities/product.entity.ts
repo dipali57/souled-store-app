@@ -1,6 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { CartItem } from 'src/cart-items/entities/cart-item.entity';
+import { Category } from 'src/category/entities/category.entity';
+import { OrderItem } from 'src/order-item/entities/order-item.entity';
+import { Review } from 'src/review/entities/review.entity';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany } from 'typeorm';
 
-@Entity()
+@Entity('products')
 export class Product {
   @PrimaryGeneratedColumn()
   id: number;
@@ -11,7 +15,7 @@ export class Product {
   @Column()
   description: string;
 
-  @Column('decimal')
+  @Column('decimal',  { precision: 10, scale: 2 })
   price: number;
 
   @Column()
@@ -20,6 +24,15 @@ export class Product {
   @Column()
   imageUrl: string;
 
-  @Column()
-  category: string;
+  @ManyToOne(() => Category, (category) => category.products)
+  category: Category;
+
+  @OneToMany(() => CartItem, (cartItem) => cartItem.product)
+  cartItems: CartItem[];
+
+  @OneToMany(() => OrderItem, (orderItem) => orderItem.product)
+  orderItems: OrderItem[];
+
+  @OneToMany(() => Review, (review) => review.product)
+  reviews: Review[];
 }

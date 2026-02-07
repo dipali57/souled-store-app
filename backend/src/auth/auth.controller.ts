@@ -6,6 +6,7 @@ import {
   Res,
   Req,
   UseGuards,
+  HttpCode,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDTO } from 'src/users/dto/create-user.dto';
@@ -54,9 +55,11 @@ export class AuthController {
   }
 
   @Post('logout')
-  logout(@Req() req: Request, @Res() res: Response) {
+  @HttpCode(200)
+  logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     res.clearCookie('Authentication');
     res.clearCookie('IsAuthenticated');
-    return res.status(200).send({ success: true });
+    // return res.status(200).send({ success: true });
+    return { message: "Logout successful"}
   }
 }

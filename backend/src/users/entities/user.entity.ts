@@ -1,7 +1,10 @@
+import { Cart } from 'src/cart/entities/cart.entity';
 import { UserRole } from 'src/common/enums/user-role.enum';
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Order } from 'src/orders/entities/order.entity';
+import { Review } from 'src/review/entities/review.entity';
+import { Entity, PrimaryGeneratedColumn, Column, OneToOne, OneToMany, JoinColumn } from 'typeorm';
 
-@Entity()
+@Entity('users')
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
@@ -21,4 +24,13 @@ export class User {
   default: UserRole.USER,
   })
   role: UserRole;
+
+  @OneToOne(() => Cart, (cart) => cart.user)
+  cart: Cart;
+
+  @OneToMany(() => Order, (order) => order.user)
+  orders: Order[];
+
+  @OneToMany(() => Review, (review) => review.user)
+  reviews: Review[];
 }

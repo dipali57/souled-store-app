@@ -13,10 +13,14 @@ import { EmailService } from './email.service';
 import { ResetPassDTO } from 'src/users/dto/reset-pass.dto';
 import { CreateUserDTO } from 'src/users/dto/create-user.dto';
 import { LoginDTO } from 'src/users/dto/login.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from 'src/users/entities/user.entity';
 
 @Injectable()
 export class AuthService {
   constructor(
+    @InjectRepository(User) private readonly repo: Repository<User>,
     private usersService: UsersService,
     private jwtService: JwtService,
     private emailService: EmailService,
@@ -25,13 +29,14 @@ export class AuthService {
   private otpStore = new Map(); // Temporary storage for OTPs
 
   async signup(createUser: CreateUserDTO) {
+    const { email, password } = createUser;
     const existingUser = await this.usersService.findUserByEmail(
-      createUser.email,
+      email,
     );
     if (existingUser)
       throw new HttpException('Email already exists', HttpStatus.FOUND);
 
-    const hashedPassword = await bcrypt.hash(createUser.password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
     return this.usersService.createUser({
       ...createUser,
       password: hashedPassword,
@@ -39,7 +44,12 @@ export class AuthService {
   }
 
   async signIn(loginDto: LoginDTO) {
-    const user = await this.usersService.findUserByEmail(loginDto.email);
+    const user = await this.repo
+      .createQueryBuilder('user')
+      .addSelect('user.password')
+      .where('user.email = :email', { email: loginDto.email })
+      .getOne();
+
     if (!user) {
       throw new UnauthorizedException('Bad Credentials');
     }
