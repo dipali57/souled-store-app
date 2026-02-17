@@ -1,11 +1,3 @@
-import React from 'react'
-
-const UserDashboard = () => {
-  return (
-    <div>
-      
-    </div>
-  )
-}
-
-export default UserDashboard
+export const UserDashboard = () => (
+  <div>User Dashboard</div>
+);

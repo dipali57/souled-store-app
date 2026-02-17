@@ -27,14 +27,18 @@ export class AuthController {
   }
 
   @Post('signin')
-  async signIn(@Body() loginDto: LoginDTO, @Res() res: Response) {
+  async signIn(@Body() loginDto: LoginDTO, @Res({ passthrough: true }) res: Response) {
     const { token, user } = await this.authService.signIn(loginDto);
     res.cookie('IsAuthenticated', true, { maxAge: 2 * 60 * 60 * 1000 });
     res.cookie('Authentication', token, {
-      httpOnly: true,
-      maxAge: 2 * 60 * 60 * 1000,
-    });
-    return res.send({ success: true, user });
+    httpOnly: true,
+    maxAge: 2 * 60 * 60 * 1000,
+    sameSite: 'lax',
+    secure: false,
+    path: '/'
+  });
+
+  return {success: true, user};
   }
 
   @Post('forgot-password')

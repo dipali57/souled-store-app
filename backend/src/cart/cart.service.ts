@@ -25,8 +25,9 @@ export class CartService {
   }
 
   async addToCart(addToCartDto: CreateCartDto, user: User) {
+        console.log('cart in backend', addToCartDto);
     let cart = await this.getUserCartEntity(user.id);
-
+    console.log('cart in backend', cart);
     if (!cart) {
       cart = this.cartRepository.create({
         user: { id: user.id },

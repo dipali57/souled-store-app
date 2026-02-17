@@ -85,34 +85,34 @@ export class ProductsService {
     return this.productsRepository.save(product);
   }
 
-  //Fetch all Products and Filter Products
-  // async getAllProducts(
-  //   category?: string,
-  //   minPrice?: number,
-  //   maxPrice?: number,
-  //   search?: string,
-  // ) {
-  //   const query = this.productsRepository.createQueryBuilder('product');
+  // Fetch all Products and Filter Products
+  async getAllProducts(
+    category?: string,
+    minPrice?: number,
+    maxPrice?: number,
+    search?: string,
+  ) {
+    const query = this.productsRepository.createQueryBuilder('product');
 
-  //   if (category) {
-  //     query.andWhere('product.category = :category', { category });
-  //   }
-  //   if (minPrice) {
-  //     query.andWhere('product.price >= :minPrice', { minPrice });
-  //   }
-  //   if (maxPrice) {
-  //     query.andWhere('product.price <= :maxPrice', { maxPrice });
-  //   }
-  //   if (search) {
-  //     query.andWhere(
-  //       'product.name ILIKE :search OR product.description ILIKE :search',
-  //       {
-  //         search: `%${search}%`,
-  //       },
-  //     );
-  //   }
-  //   return query.getMany();
-  // }
+    if (category) {
+      query.andWhere('product.category = :category', { category });
+    }
+    if (minPrice) {
+      query.andWhere('product.price >= :minPrice', { minPrice });
+    }
+    if (maxPrice) {
+      query.andWhere('product.price <= :maxPrice', { maxPrice });
+    }
+    if (search) {
+      query.andWhere(
+        'product.name ILIKE :search OR product.description ILIKE :search',
+        {
+          search: `%${search}%`,
+        },
+      );
+    }
+    return query.getMany();
+  }
 
   // Fetch a single product by ID
   async findOne(id: number): Promise<Product> {
@@ -125,6 +125,7 @@ export class ProductsService {
     return product;
   }
 
+  // Update a product (Admin-only)
   async updateProduct(
     id: number,
     dto: UpdateProductDTO,
@@ -148,6 +149,7 @@ export class ProductsService {
 
     return this.productsRepository.save(product);
   }
+
   //update product
   async update(
     id: number,
@@ -203,8 +205,9 @@ export class ProductsService {
   }
 
   // Delete a product
-  async deleteProduct(id: number): Promise<void> {
-    const product = await this.findOne(id);
-    await this.productsRepository.remove(product);
+  async deleteProduct(id: number) {
+    // const product = await this.findOne(id);
+    // await this.productsRepository.remove(product);
+    return this.productsRepository.update(id, {isActive: false,});
   }
 }

@@ -40,20 +40,20 @@ export class ProductsController {
   }
 
   // Fetch all products with optional filters
-  // @Get()
-  // getAllProducts(
-  //   @Query('category') category?: string,
-  //   @Query('minPrice') minPrice?: number,
-  //   @Query('maxPrice') maxPrice?: number,
-  //   @Query('search') search?: string,
-  // ) {
-  //   return this.productsService.getAllProducts(
-  //     category,
-  //     minPrice,
-  //     maxPrice,
-  //     search,
-  //   );
-  // }
+  @Get('filter')
+  getAllProducts(
+    @Query('category') category?: string,
+    @Query('minPrice') minPrice?: number,
+    @Query('maxPrice') maxPrice?: number,
+    @Query('search') search?: string,
+  ) {
+    return this.productsService.getAllProducts(
+      category,
+      minPrice,
+      maxPrice,
+      search,
+    );
+  }
 
   @Get()
   async getProducts(
@@ -76,18 +76,18 @@ export class ProductsController {
   @Put(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
- @UseInterceptors(ProductImageInterceptor())
-async updateProduct(
-  @Param('id') id: number,
-  @UploadedFile() file: Express.Multer.File,
-  @Body() updateProductDto: UpdateProductDTO,
-) {
-  return this.productsService.updateProduct(
-    Number(id),
-    updateProductDto,
-    file,
-  );
-}
+  @UseInterceptors(ProductImageInterceptor())
+  async updateProduct(
+    @Param('id') id: number,
+    @UploadedFile() file: Express.Multer.File,
+    @Body() updateProductDto: UpdateProductDTO,
+  ) {
+    return this.productsService.updateProduct(
+      Number(id),
+      updateProductDto,
+      file,
+    );
+  }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)

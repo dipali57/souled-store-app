@@ -6,7 +6,6 @@ import { User } from 'src/users/entities/user.entity';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { RolesGuard } from 'src/auth/guards/roles.guards';
 import { UserRole } from 'src/common/enums/user-role.enum';
-import { AuthGuard } from '@nestjs/passport/dist/auth.guard';
 import { UpdateOrderDto } from './dto/update-order.dto';
 
 @Controller('orders')

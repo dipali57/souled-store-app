@@ -1,199 +1,68 @@
-import React, { useState } from "react";
-import {
-  AppBar,
-  Toolbar,
-  Button,
-  Box,
-  Badge,
-  IconButton,
-  InputBase,
-  Typography,
-  styled,
-  Tab,
-  Tabs,
-} from "@mui/material";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
-import logo from "../assets/souledstorelogo.png";
-import {
-  Search,
-  FavoriteBorder,
-  ShoppingCart,
-  AccountCircle,
-} from "@mui/icons-material";
+// components/Navbar.tsx
+import { Link } from "react-router-dom";
+import { Menu, Search, Mic, User, Heart, ShoppingCart } from "lucide-react";
+import { useState } from "react";
+import { Sidebar } from "./Sidebar";
+import { useAuth } from "../auth/AuthContext";
 
-const SearchBox = styled("div")(() => ({
-  display: "flex",
-  alignItems: "center",
-  backgroundColor: "white",
-  padding: "5px 10px",
-  borderRadius: "5px",
-  flexGrow: 1,
-  maxWidth: "300px",
-}));
-
-const Logo = styled("img")(() => ({
-  height: "50px",
-}));
-
-const Navbar: React.FC = () => {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
-  const [selectedCategory, setSelectedCategory] = useState("Men");
-
-  const categoryOptions: Record<string, string[]> = {
-    Men: ["T-Shirts", "Shirts", "Jeans", "Shoes"],
-    Women: ["Dresses", "Tops", "Skirts", "Heels"],
-    Kids: ["Onesies", "Shorts", "Sneakers", "Hoodies"],
-  };
+export const Navbar = () => {
+  const [openSidebar, setOpenSidebar] = useState(false);
+  const { user } = useAuth();
 
   return (
-    <>
-      {/* Top Navbar */}
-      <AppBar position="static" sx={{ backgroundColor: "#e11b23" }}>
-        <Toolbar
-          sx={{
-            display: "flex",
-            padding: '0 !important', // Remove default padding
-            minHeight: '48px !important', // Reduce toolbar height,
-            justifyContent: "space-between",
-            alignItems: "center",
-            // minHeight: 45,
-          }}
-        >
-          <Logo src={logo} alt="Souled Store Logo" />
+    <div className="w-full bg-white shadow-[0_4px_10px_rgba(0,0,0,0.08)] sticky top-0 z-30">
+      <div className="flex items-center justify-between px-4 md:px-10 py-3">
+        {/* LEFT */}
+        <div className="flex items-center gap-4">
+          <Menu className="w-6 h-6 cursor-pointer" onClick={() => setOpenSidebar(true)} />
 
-          <Tabs
-            value={selectedCategory}
-            onChange={(_, newValue) => setSelectedCategory(newValue)}
-            sx={{
-              display: "flex",
-              borderColor: "black",
-              minHeight: '48px',
-              gap: 3,
-              "& .MuiButtonBase-root:not(:last-child)": {
-                borderRight: "0.5px solid black",
-              },
-              "& .MuiTabs-indicator": {
-                backgroundColor: "#ffff", // Color for the underline indicator
-                height: 2, // Adjust indicator thickness if needed
-              },
-            }}
-          >
-            {["Women", "Men", "Kids"].map((category) => (
-              <Tab
-                key={category}
-                label={category}
-                value={category}
-                sx={{
-                  color: "white", // Default text color
-                  fontWeight: 900, 
-                  "&.Mui-selected": {
-                    background: "#ffff",
-                    color: "black", // Text color when selected
-                    fontWeight: 900, // Optional: make selected tab bold
-                  },
-                  "&:hover": {
-                    color: "black", // Text color on hover
-                  },
-                }}
-              />
-            ))}
-          </Tabs>
+          <div className="hidden md:flex gap-8 font-semibold text-gray-700 text-lg">
+            <Link to="/" className="font-bold hover:text-black border-b-2 border-red-500 pb-1">HOME</Link>
+            <Link to="/products?category=men" className="font-bold hover:text-black">MEN</Link>
+            <Link to="/products?category=women" className="font-bold hover:text-black">WOMEN</Link>
+          </div>
+        </div>
 
-          <Box sx={{ display: "flex", gap: 3 }}>
-            <Typography
-              variant="body2"
-              sx={{ color: "white", fontWeight: "bold", cursor: "pointer" }}
-            >
-              Track Order
-            </Typography>
-            <Typography
-              variant="body2"
-              sx={{ color: "white", fontWeight: "bold", cursor: "pointer" }}
-            >
-              Contact Us
-            </Typography>
-            <Typography
-              variant="body2"
-              sx={{ color: "white", fontWeight: "bold", cursor: "pointer" }}
-            >
-              Download App
-            </Typography>
-          </Box>
-        </Toolbar>
-      </AppBar>
+        {/* CENTER LOGO */}
+        <Link to="/" className="flex justify-center flex-1 md:flex-none">
+          <img
+            alt="Souled Store Logo"
+            src="/src/assets/souledstorelogo.png"
+            className="w-24 md:w-32 h-10 md:h-12 object-contain"
+          />
+        </Link>
 
-      {/* Bottom Navbar */}
-      <AppBar position="static" sx={{ backgroundColor: "#ffff" }}>
-        <Toolbar
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <Box sx={{ display: "flex", gap: 3 }}>
-            {categoryOptions[selectedCategory].map((option) => (
-              <Typography
-                key={option}
-                variant="body2"
-                sx={{ color: "black", fontWeight: "bold", cursor: "pointer" }}
-              >
-                {option}
-              </Typography>
-            ))}
-          </Box>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-            <Box>
-              <Button color="secondary" component={Link} to="/products">
-                Products
-              </Button>
-              {user ? (
-                <>
-                  {user.role === "admin" && (
-                    <Button color="secondary" component={Link} to="/admin">
-                      Admin
-                    </Button>
-                  )}
-                  <Button color="secondary" component={Link} to="/cart">
-                    Cart
-                  </Button>
-                  <Button color="secondary" onClick={logout}>
-                    Logout
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button color="secondary" component={Link} to="/login">
-                    Login
-                  </Button>
-                  <Button color="secondary" component={Link} to="/signup">
-                    Signup
-                  </Button>
-                </>
-              )}
-            </Box>
-            <SearchBox>
-              <InputBase placeholder="Search for products" fullWidth />
-              <Search sx={{ color: "gray", marginRight: "5px" }} />
-            </SearchBox>
-            <IconButton color="default">
-              <FavoriteBorder />
-            </IconButton>
-            <IconButton color="default" onClick={() => navigate("/cart")}>
-              <Badge badgeContent={2} color="error">
-                <ShoppingCart />
-              </Badge>
-            </IconButton>
-            <IconButton color="default">
-              <AccountCircle />
-            </IconButton>
-          </Box>
-        </Toolbar>
-      </AppBar>
-    </>
+        {/* RIGHT */}
+        <div className="flex items-center gap-4 md:gap-7">
+          {/* Search Bar */}
+          <div className="hidden lg:flex items-center border rounded-full px-4 py-2 w-[250px] bg-gray-50">
+            <input
+              type="text"
+              placeholder="What are you looking for?"
+              className="flex-1 bg-transparent outline-none text-sm"
+            />
+            <Mic className="w-4 h-4 mx-2 text-gray-500" />
+            <Search className="w-4 h-4 text-gray-500" />
+          </div>
+
+          {/* User Icon - Always shows, links to login if not authenticated */}
+          <Link to={user ? "/dashboard" : "/login"}><User className="w-6 h-6 cursor-pointer" /></Link>
+          
+          {/* Wishlist - Only for logged in users */}
+          {user && (<Link to="/wishlist"><Heart className="w-6 h-6 cursor-pointer hidden sm:block" /></Link>)}
+
+          {/* Cart - Always visible */}
+          <Link to="/cart" className="relative">
+            <ShoppingCart className="w-6 h-6 cursor-pointer" />
+            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-1.5 rounded-full">9</span>
+          </Link>
+
+          {/* Admin Link - Only for admins */}
+          {user?.role === "admin" && (<Link to="/admin" className="hidden md:block text-sm bg-gray-800 text-white px-3 py-1 rounded">Admin</Link>)}
+        </div>
+
+        <Sidebar isOpen={openSidebar} onClose={() => setOpenSidebar(false)} />
+      </div>
+    </div>
   );
 };
-
-export default Navbar;
