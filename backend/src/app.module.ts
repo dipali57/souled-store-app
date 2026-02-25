@@ -12,6 +12,7 @@ import { CategoryModule } from './category/category.module';
 import { ReviewModule } from './review/review.module';
 import { OrderItemModule } from './order-item/order-item.module';
 import { CartItemsModule } from './cart-items/cart-items.module';
+import { WishlistModule } from './wishlist/wishlist.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { CartItemsModule } from './cart-items/cart-items.module';
       rootPath: join(__dirname, '..', 'uploads'),
       serveRoot: '/uploads',
     }),
+        WishlistModule,
   ],
 })
 export class AppModule {}

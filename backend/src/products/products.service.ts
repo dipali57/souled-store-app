@@ -14,6 +14,7 @@ import { writeFile } from 'fs';
 import { join } from 'path';
 import { memoryStorage, Multer } from 'multer';
 import { Express } from 'express';
+import { ProductResponseDto } from './dto/product-response.dto';
 
 @Injectable()
 export class ProductsService {
@@ -23,15 +24,11 @@ export class ProductsService {
     private categoryRepository: Repository<Category>,
   ) {}
 
-  // async findAll() {
-  //   return this.productsRepository.find();
-  // }
-
   async findAll(
     sort?: string,
     categoryId?: number,
     productName?: string,
-  ): Promise<Product[]> {
+  ): Promise<ProductResponseDto[]> {
     const queryBuilder = this.productsRepository.createQueryBuilder('product');
 
     // Join category for filtering
@@ -130,7 +127,7 @@ export class ProductsService {
     id: number,
     dto: UpdateProductDTO,
     file?: Express.Multer.File,
-  ) {
+  ): Promise<ProductResponseDto> {
     const product = await this.productsRepository.findOne({
       where: { id },
     });
@@ -191,7 +188,7 @@ export class ProductsService {
   async updateStock(
     productId: number,
     updateProductStockDto: UpdateProductStockDto,
-  ) {
+  ): Promise<ProductResponseDto> {
     const product = await this.productsRepository.findOne({
       where: { id: productId },
     });
@@ -208,6 +205,6 @@ export class ProductsService {
   async deleteProduct(id: number) {
     // const product = await this.findOne(id);
     // await this.productsRepository.remove(product);
-    return this.productsRepository.update(id, {isActive: false,});
+    return this.productsRepository.update(id, { isActive: false });
   }
 }

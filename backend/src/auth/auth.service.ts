@@ -10,12 +10,13 @@ import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { EmailService } from './email.service';
-import { ResetPassDTO } from 'src/users/dto/reset-pass.dto';
-import { CreateUserDTO } from 'src/users/dto/create-user.dto';
-import { LoginDTO } from 'src/users/dto/login.dto';
+import { ResetPassDTO } from 'src/auth/dto/reset-pass.dto';
+import { RegisterDTO } from 'src/auth/dto/register.dto';
+import { LoginDTO } from 'src/auth/dto/login.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from 'src/users/entities/user.entity';
+import { Gender } from 'src/common/enums/user-role.enum';
 
 @Injectable()
 export class AuthService {
@@ -28,7 +29,7 @@ export class AuthService {
 
   private otpStore = new Map(); // Temporary storage for OTPs
 
-  async signup(createUser: CreateUserDTO) {
+  async signup(createUser: RegisterDTO) {
     const { email, password } = createUser;
     const existingUser = await this.usersService.findUserByEmail(
       email,
@@ -64,13 +65,18 @@ export class AuthService {
     }
 
     const payload = {
-      username: user.username,
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      gender: user.gender,
+      mobile: user.mobile,
       sub: user.id,
       role: user.role,
     };
 
     const token = await this.jwtService.signAsync(payload);
-        const { password, ...safeUser } = user;
+      const { password, ...safeUser } = user;
         return { token, user: safeUser };
   }
 

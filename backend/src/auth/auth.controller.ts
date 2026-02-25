@@ -9,9 +9,9 @@ import {
   HttpCode,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { CreateUserDTO } from 'src/users/dto/create-user.dto';
-import { ResetPassDTO } from 'src/users/dto/reset-pass.dto';
-import { LoginDTO } from 'src/users/dto/login.dto';
+import { RegisterDTO } from 'src/auth/dto/register.dto';
+import { ResetPassDTO } from 'src/auth/dto/reset-pass.dto';
+import { LoginDTO } from 'src/auth/dto/login.dto';
 import { Request, Response } from 'express';
 import { CurrentUser } from './decorators/user.decorator';
 import { User } from 'src/users/entities/user.entity';
@@ -22,7 +22,7 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('signup')
-  async signup(@Body() createUserDto: CreateUserDTO) {
+  async signup(@Body() createUserDto: RegisterDTO) {
     return this.authService.signup(createUserDto);
   }
 
@@ -63,7 +63,6 @@ export class AuthController {
   logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     res.clearCookie('Authentication');
     res.clearCookie('IsAuthenticated');
-    // return res.status(200).send({ success: true });
     return { message: "Logout successful"}
   }
 }

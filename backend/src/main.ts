@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import * as cookieParser from 'cookie-parser';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -12,9 +13,17 @@ async function bootstrap() {
     credentials: true,
     allowedHeaders: ['Content-Type', 'Accept'],
   });
-    app.useStaticAssets(join(__dirname, '..', 'uploads'), {
+  app.useStaticAssets(join(__dirname, '..', 'uploads'), {
     prefix: '/uploads/', // This will make files accessible via /uploads/filename
   });
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true, // removes unknown fields
+      forbidNonWhitelisted: true, // throws error if extra field sent
+      transform: true, // auto converts types (string → number)
+    }),
+  );
   await app.listen(3000);
 }
 bootstrap();

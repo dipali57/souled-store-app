@@ -21,4 +21,7 @@ export class Order {
 
   @Column()
   status: string; // e.g., pending, completed
+
+  @Column({ nullable: true })
+  shippingAddress: string;
 }

@@ -1,28 +1,31 @@
 import { IsNotEmpty, IsNumber, IsString } from '@nestjs/class-validator';
 import { IsOptional } from '@nestjs/class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateProductDTO {
-  @IsNotEmpty()
   @IsString()
+  @IsNotEmpty()
   name: string;
 
   @IsNotEmpty()
   @IsString()
   description: string;
 
-  @IsNotEmpty()
+  @Type(() => Number)
   @IsNumber()
+  @IsNotEmpty()
   price: number;
 
-  @IsNotEmpty()
+  @Type(() => Number)
   @IsNumber()
+  @IsNotEmpty()
   stock: number;
+
+  @Type(() => Number)
+  @IsNumber()
+  categoryId: number;
 
   @IsOptional()
   @IsString()
-  image?: string;
-
-  @IsNumber()
-  @IsNotEmpty()
-  categoryId: number;
+  sku?: string;
 }

@@ -57,7 +57,7 @@ export class OrdersService {
 
     const orderItemsDtos = cart.cartItems.map((cartItem) => ({
       orderId: savedOrder.id,
-      productId: cartItem.product.id,
+      productId: +cartItem.product.id,
       quantity: cartItem.quantity,
     }));
 
