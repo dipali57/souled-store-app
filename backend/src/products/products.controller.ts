@@ -25,22 +25,9 @@ import { ProductImageInterceptor } from './interceptors/product-img.interceptor'
 import { ProductResponseDto } from './dto/product-response.dto';
 
 @Controller('products')
-@UseGuards(JwtAuthGuard, RolesGuard)
 export class ProductsController {
   constructor(private productsService: ProductsService) {}
-
-  // Add a new product (Admin-only)
-  @Roles(Role.ADMIN)
-  @Post('add')
-  @UseInterceptors(ProductImageInterceptor())
-  async addProduct(
-    @UploadedFile() file: Express.Multer.File,
-    @Body() createProductDto: CreateProductDTO,
-  ){
-    return this.productsService.addProduct(createProductDto, file);
-  }
-
-  // Fetch all products with optional filters
+    // Fetch all products with optional filters
   @Get('filter')
   getAllProducts(
     @Query('category') category?: string,
@@ -65,15 +52,27 @@ export class ProductsController {
     return this.productsService.findAll(sort, categoryId, productName);
   }
 
-  // Fetch a single product by ID
+    // Fetch a single product by ID
   @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.productsService.findOne(+id);
+  }
+
+  // Add a new product (Admin-only)
+  @Post('add')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
-  findOne(@Param('id') id: number) {
-    return this.productsService.findOne(id);
+  @UseInterceptors(ProductImageInterceptor())
+  async addProduct(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() createProductDto: CreateProductDTO,
+  ){
+    return this.productsService.addProduct(createProductDto, file);
   }
 
   // Update a product (Admin-only)
   @Put(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @UseInterceptors(ProductImageInterceptor())
   async updateProduct(
@@ -88,8 +87,9 @@ export class ProductsController {
     );
   }
 
-  @Roles(Role.ADMIN)
   @Patch(':id/stock')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   updateStock(
     @Param('id') id: number,
     @Body() updateProductStockDto: UpdateProductStockDto,
@@ -98,8 +98,9 @@ export class ProductsController {
   }
 
   // Delete a product (Admin-only)
-  @Roles(Role.ADMIN)
   @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   deleteProduct(@Param('id') id: number) {
     return this.productsService.deleteProduct(id);
   }

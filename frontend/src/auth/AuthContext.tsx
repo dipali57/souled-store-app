@@ -7,15 +7,27 @@ import {
   signupUser,
 } from "../api/auth.api";
 
+interface RegisterData {
+  firstName?: string;
+  lastName?: string;
+  email: string;
+  password: string;
+  mobile?: string;
+  gender?: "M" | "F" | "O";
+  birthdate?: string;
+}
+
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
-  register: (name: string, email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
+  register: (data: RegisterData) => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
@@ -23,27 +35,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user) {
-      fetchUser();
-    } else {
-      setLoading(false);
-    }
+    refreshUser();
   }, []);
 
-  const fetchUser = async () => {
+  const refreshUser = async () => {
     try {
-      const response = await checkAuthStatus();
-      setUser(response.data.user);
-    } catch (error) {
-      console.error("Failed to fetch user:", error);
+      const res = await checkAuthStatus();
+      if (res.data?.status) {
+        setUser(res.data.user);
+      } else {
+        setUser(null);
+      }
+    } catch {
+      setUser(null);
     } finally {
       setLoading(false);
     }
   };
 
   const login = async (email: string, password: string) => {
-    const response = await signinUser({ email, password });
-    setUser(response.data.user);
+    setLoading(true);
+    try {
+      const res = await signinUser({ email, password });
+      setUser(res.data.user);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const logout = async () => {
@@ -51,26 +68,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     setUser(null);
   };
 
-  const register = async (
-    username: string,
-    email: string,
-    password: string,
-  ) => {
-    const response = await signupUser({ username, email, password });
-    setUser(response.data.user);
+  const register = async (data: RegisterData) => {
+    setLoading(true);
+    try {
+      const res = await signupUser(data);
+      setUser(res.data.user);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, register }}>
+    <AuthContext.Provider
+      value={{ user, loading, login, logout, register, refreshUser }}
+    >
       {children}
     </AuthContext.Provider>
   );
 };
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be inside AuthProvider");
+  return ctx;
 };

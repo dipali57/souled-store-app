@@ -1,51 +1,14 @@
-
-import axios from "axios";
-import { AUTH_STATUS, FORGOT_PASSWORD_URL, LOGOUT_URL, RESET_PASSWORD_URL, SIGNIN_URL, SIGNUP_URL } from "./axios";
+import { api, AUTH_STATUS, FORGOT_PASSWORD_URL, LOGOUT_URL, RESET_PASSWORD_URL, SIGNIN_URL, SIGNUP_URL } from "./axios";
 import type { LoginDTO, ResetPassDTO, SignupDTO } from "./types/auth.types";
 
-export const signinUser = async (params: LoginDTO) => {
-  try {
-    const response = await axios.post(SIGNIN_URL, params, {
-      withCredentials: true,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-    return response;
-  } catch (error) {
-    console.error('Signin error:', error);
-    throw error;
-  }
-};
+export const signinUser = async (data: LoginDTO) => await api.post(SIGNIN_URL, data);
 
-export const signupUser = async (params: SignupDTO) => {
-return await axios.post(SIGNUP_URL, {
-    headers: {
-      Accept: 'application/json',
-    },
-    ...params,
-  });
-};
+export const signupUser = async (data: SignupDTO) =>  await api.post(SIGNUP_URL, data);
 
-export const forgotPassword = async (email: string) => {
-  const response = await axios.post(FORGOT_PASSWORD_URL, {email});
-  return response.data;
-}
+export const forgotPassword = async (email: string) => await api.post(FORGOT_PASSWORD_URL, {email});
 
-export const resetPassword = async (data: ResetPassDTO) => {
-  const response = await axios.post(RESET_PASSWORD_URL, data);
-  return response.data;
-};
+export const resetPassword = async (data: ResetPassDTO) => await api.post(RESET_PASSWORD_URL, data);
 
-export const checkAuthStatus = async () => {
-  return await axios.get(AUTH_STATUS, {
-    headers: {
-      Accept: 'application/json',
-    },
-  });
-};
+export const checkAuthStatus = async () => await api.get(AUTH_STATUS);
 
-export const logoutUser = async () => {
-  const response = await axios.post(LOGOUT_URL);
-  return response.data;
-};
+export const logoutUser = async () => await api.post(LOGOUT_URL);

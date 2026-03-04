@@ -7,11 +7,11 @@ export const AuthPage = () => {
   const isLogin = location.pathname === "/login";
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white w-[500px] shadow-lg mt-6">
+    <div className="flex items-center justify-center bg-gray-100">
+      <div className="bg-white w-[500px] shadow-lg mt-6 mb-12">
         {/* Title */}
-        <div className="text-center pt-6 text-xl font-semibold">
-          Login with The Souled Store
+        <div className="text-center pt-6 text-lg font-semibold">
+          {isLogin ? "Login with The Souled Store" : "Register with The Souled Store"}
         </div>
 
         <div className="px-6 py-6">
@@ -40,15 +40,12 @@ export const AuthPage = () => {
             </button>
           </div>
 
-          {/* Content box */}
-          {/* <div className="p-8 border mt-6 bg-gray-100 border-gray-300 rounded min-h-[420px] flex flex-col justify-center">
-            <Outlet />
-          </div> */}
-          <div className="p-8 border mt-6 bg-gray-100 border-gray-300 rounded min-h-[420px]">
+          <div className="p-8 border mt-6 bg-gray-100 border-gray-300 rounded">
             <div className="w-full">
               <Outlet />
             </div>
           </div>
+
         </div>
       </div>
     </div>

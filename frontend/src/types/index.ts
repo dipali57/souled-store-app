@@ -1,4 +1,7 @@
 // src/types/index.ts
+
+export type ApiLoadState = "initial" | "loading" | "loaded" | "error";
+
 export interface User {
   id: string;
   name: string;
@@ -23,4 +26,18 @@ export interface Order {
   totalAmount: number;
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   createdAt: Date;
+}
+
+export interface CartItem {
+  id: number;
+  quantity: number;
+  product: {
+    id: number;
+    name: string;
+    description: string;
+    price: string;
+    stock: number;
+    imageUrl: string;
+    isActive: boolean;
+  };
 }

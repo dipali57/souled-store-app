@@ -1,7 +1,11 @@
 export interface SignupDTO {
-  username: string;
+  firstName?: string;
+  lastName?: string;
   email: string;
   password: string;
+  mobile?: string;
+  gender?: 'M' | 'F' | 'O';
+  birthdate?: string;
 }
 
 export interface LoginDTO {

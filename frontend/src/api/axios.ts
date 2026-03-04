@@ -21,19 +21,14 @@ export const GET_USER_CART_URL =`${BASE_URL}/cart`;
 export const REMOVE_FROM_CART_URL = `${BASE_URL}/cart/remove`;
 export const UPDATE_FROM_CART_URL = `${BASE_URL}/cart/update`;
 
+export const ORDER_URL = `${BASE_URL}/orders`;
+export const FETCH_ALL_ORDERS = `${BASE_URL}/orders/all`;
+export const PLACE_ORDER = `${BASE_URL}/orders/checkout`;
+
 export const api = axios.create({
-  baseURL: BASE_URL, // your backend
+  baseURL: BASE_URL,
   headers: {
-    ContentType: "application/json",
+    'Content-Type': "application/json",
   },
   withCredentials: true
-});
-
-// Attach token automatically
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
 });
