@@ -20,7 +20,7 @@ export class CartService {
   private async getUserCartEntity(userId: number): Promise<Cart> {
     let cart = await this.cartRepository.findOne({
       where: { user: { id: userId } },
-      relations: ['cartItems', 'cartItems.product', 'user'],
+      relations: ['cartItems', 'cartItems.product', 'cartItems.product.category', 'user'],
     });
 
     if (!cart) {
@@ -84,6 +84,10 @@ export class CartService {
     return this.formatCart(updated);
   }
 
+  async removeMultipleCartItems(cartItemIds: number[], user: User) {
+  await this.cartItemsService.removeMultipleCartItems(cartItemIds, user);
+  }
+
   async getUserCart(user: User): Promise<CartResponseDto> {
     const cart = await this.getUserCartEntity(user.id);
     if (!cart) {
@@ -104,7 +108,7 @@ export class CartService {
     await this.cartRepository.delete(cart.id);
   }
 
-  private formatCart(cart: any): CartResponseDto {
+  private formatCart(cart: Cart): CartResponseDto {
     const cartItems: CartItemResponseDto[] = cart.cartItems.map(
       (item: any) => ({
         id: item.id,
@@ -114,6 +118,7 @@ export class CartService {
         product: {
           ...item.product,
           price: Number(item.product.price),
+          category: item.product.category
         },
         createdAt: item.createdAt,
         updatedAt: item.updatedAt,
@@ -128,8 +133,8 @@ export class CartService {
     const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
     return {
-      id: cart.id,
-      userId: cart.userId,
+      id: `${cart.id}`,
+      userId: `${cart.user.id}`,
       cartItems,
       totalPrice,
       totalItems,

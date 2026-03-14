@@ -6,11 +6,12 @@ import {
 import { CreateCartItemDto } from './dto/create-cart-item.dto';
 import { UpdateCartItemDto } from './dto/update-cart-item.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Index, Repository } from 'typeorm';
+import { In, Index, Repository } from 'typeorm';
 import { CartItem } from './entities/cart-item.entity';
 import { Product } from 'src/products/entities/product.entity';
 import { Cart } from 'src/cart/entities/cart.entity';
 import { RemoveCartItemDto } from './dto/remove-cart-item.dto';
+import { User } from 'src/users/entities/user.entity';
 
 @Injectable()
 export class CartItemsService {
@@ -79,6 +80,13 @@ export class CartItemsService {
     }
 
     return { message: 'Cart item removed successfully' };
+  }
+
+  async removeMultipleCartItems(cartItemIds: number[], user: User) {
+    await this.cartItemsRepository.delete({
+      id: In(cartItemIds),
+    });
+    return { message: 'Selected cart items removed successfully' };
   }
 
   async updateCartItemQuantity(updateCartItemDto: UpdateCartItemDto) {

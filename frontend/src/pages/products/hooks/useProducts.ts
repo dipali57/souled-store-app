@@ -10,7 +10,8 @@ import {
   setSortBy,
   clearFilters,
 } from "../redux/product.slice"; // Fixed import path
-import { useAppDispatch, useAppSelector } from "../../cart/redux/cart.hooks";
+import { useAppDispatch, useAppSelector } from "../../../store/store";
+
 
 export const useProducts = (categoryId?: number, searchTerm?: string) => {
   const dispatch = useAppDispatch();

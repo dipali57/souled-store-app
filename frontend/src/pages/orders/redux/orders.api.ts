@@ -58,10 +58,11 @@ export const orderApi = createApi({
     }),
 
     // Checkout (place order)
-    checkout: builder.mutation<Order, void>({
-      query: () => ({
+    checkout: builder.mutation<Order, {cartItemIds: number[]}>({
+      query: (body) => ({
         url: '/orders/checkout',
         method: 'POST',
+        body
       }),
       invalidatesTags: [{ type: 'Orders', id: 'LIST' }],
     }),

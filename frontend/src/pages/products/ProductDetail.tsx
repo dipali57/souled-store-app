@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { Heart, Share2, Minus, Plus } from "lucide-react";
-import { useAppDispatch, useAppSelector } from "../cart/redux/cart.hooks";
 import { useGetProductByIdQuery } from "./redux/product.api";
 import { addToRecentlyViewed, toggleWishlist } from "./redux/product.slice";
-import type { RootState } from "../../store/store";
+import { useAppDispatch, useAppSelector, type RootState } from "../../store/store";
 import { BASE_URL } from "../../api/axios";
 import { useCartOperations } from "../cart/hooks/useCartOperations";
+import toast from "react-hot-toast";
 
 export const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -61,7 +61,7 @@ export const ProductDetail = () => {
       return;
     }
     if (!product) {
-      alert("Product not found");
+      toast.error("Product not found");
       return;
     }
     await addToCart(productId, product.stock);
@@ -85,7 +85,7 @@ export const ProductDetail = () => {
       });
     } else {
       navigator.clipboard.writeText(window.location.href);
-      alert("Link copied to clipboard!");
+      toast.success("Link copied to clipboard!");
     }
   };
 

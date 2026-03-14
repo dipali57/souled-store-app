@@ -9,6 +9,7 @@ import { userReducer } from "../pages/user/redux/user.slice";
 import { userApi } from "../pages/user/redux/user.api";
 import { orderReducer } from "../pages/orders/redux/orders.slice";
 import { orderApi } from "../pages/orders/redux/orders.api";
+import { useDispatch, useSelector, type TypedUseSelectorHook } from "react-redux";
 
 export const store = configureStore({
   reducer: {
@@ -34,3 +35,7 @@ export const store = configureStore({
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
+
+export const useAppDispatch = () => useDispatch<AppDispatch>();
+export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
+

@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "../auth/AuthContext";
 import { Eye, EyeOff } from "lucide-react";
+import toast from "react-hot-toast";
 
 export const Register = () => {
   const navigate = useNavigate();
@@ -109,7 +110,7 @@ export const Register = () => {
         gender: formData.gender as "M" | "F" | "O",
         //birthdate: formData.birthdate,
       });
-      alert("Register Successfull!");
+      toast.success("Register Successfull!");
       navigate("/login");
     } catch (err: any) {
       const msg =

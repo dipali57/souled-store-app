@@ -1,11 +1,28 @@
-import { createContext, useContext, useEffect, useState } from "react";
-import type { User } from "../types";
 import {
-  checkAuthStatus,
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
+import {
+  getProfile,
   logoutUser,
   signinUser,
   signupUser,
 } from "../api/auth.api";
+import { useDispatch } from "react-redux";
+import { userApi } from "../pages/user/redux/user.api";
+import { cartApi } from "../pages/cart/redux/cart.api";
+import { wishlistApi } from "../pages/wishlist/redux/wishlist.api";
+
+export interface User {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: "user" | "admin";
+}
 
 interface RegisterData {
   firstName?: string;
@@ -33,39 +50,76 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const dispatch = useDispatch();
 
-  useEffect(() => {
-    refreshUser();
-  }, []);
+  const resetAllCaches = useCallback(() => {
+    // Group all user-specific APIs
+    const userSpecificApis = [
+      userApi,
+      cartApi,
+      wishlistApi,
+    ];
 
-  const refreshUser = async () => {
+    // Reset each one
+    userSpecificApis.forEach(api => {
+      dispatch(api.util.resetApiState());
+    });
+
+    console.log('All user-specific caches reset at:', new Date().toISOString());
+  }, [dispatch]);
+
+  const refreshUser = useCallback(async () => {
     try {
-      const res = await checkAuthStatus();
-      if (res.data?.status) {
-        setUser(res.data.user);
-      } else {
-        setUser(null);
-      }
-    } catch {
+      setLoading(true);
+      const res = await getProfile();
+      setUser(res.data);
+    } catch (error) {
       setUser(null);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
+  useEffect(() => {
+    refreshUser();
+  }, [refreshUser]);
+  
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
+      setUser(null);
+      
+      // Step 1: Perform login
       const res = await signinUser({ email, password });
       setUser(res.data.user);
+      
+      // Step 2: Refresh user profile
+      await refreshUser();
+      
+      // Step 3: Now clear caches and let components refetch with proper auth
+      // Use setTimeout to ensure this happens after state updates
+      setTimeout(() => {
+        resetAllCaches();
+      }, 0);
+      
+    } catch (error: any) {
+      console.error(error);
+      throw new Error(error?.response?.data?.message || "Login failed");
     } finally {
       setLoading(false);
     }
   };
 
   const logout = async () => {
-    await logoutUser();
-    setUser(null);
+    setLoading(true);
+    try {
+      await logoutUser();
+      setUser(null);
+      // Clear caches after logout
+      resetAllCaches();
+    } finally {
+      setLoading(false);
+    }
   };
 
   const register = async (data: RegisterData) => {
@@ -73,6 +127,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       const res = await signupUser(data);
       setUser(res.data.user);
+      // Clear caches after registration
+      setTimeout(() => {
+        resetAllCaches();
+      }, 0);
     } finally {
       setLoading(false);
     }

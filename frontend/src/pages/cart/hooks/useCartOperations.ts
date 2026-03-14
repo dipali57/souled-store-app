@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAddToCartMutation } from "../redux/cart.api";
+import toast from "react-hot-toast";
 
 export const useCartOperations = () => {
   const [addToCart] = useAddToCartMutation();
@@ -7,25 +8,24 @@ export const useCartOperations = () => {
 
   const handleAddToCart = async (productId: number, stock: number) => {
     if (stock <= 0) {
-      alert("Out of stock");
+      toast.error("Out of stock");
       return false;
     }
-    
+
     try {
-     setLoadingProductId(productId);
+      setLoadingProductId(productId);
       await addToCart(productId).unwrap();
-      alert("Added to cart!");
+      toast.success("Added to cart!");
       return true;
     } catch (error) {
       console.error("Failed to add to cart:", error);
-      alert("Failed to add to cart");
+      toast.error("Failed to add to cart");
       return false;
-    }finally {
-        setLoadingProductId(null);
+    } finally {
+      setLoadingProductId(null);
     }
-};
-const isAddingToCart = (productId: number) =>
-loadingProductId === productId;
+  };
+  const isAddingToCart = (productId: number) => loadingProductId === productId;
 
-  return { handleAddToCart, isAddingToCart};
+  return { handleAddToCart, isAddingToCart };
 };

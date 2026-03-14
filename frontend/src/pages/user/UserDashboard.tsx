@@ -57,28 +57,18 @@ const UserDashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                {user?.firstName} {user?.lastName}
-              </h1>
-              <p className="text-gray-600 mt-1">{user?.email}</p>
-            </div>
-            <button className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors">
-              Get Membership Now
-            </button>
-          </div>
-        </div>
-      </div>
-
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col md:flex-row gap-8">
           {/* Left Sidebar */}
           <div className="md:w-64 flex-shrink-0">
-            <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
+            <div className="bg-gray-200 mb-5 flex-row justify-center py-5 border border-gray-300 rounded-xs">
+              <h1 className="text-x font-bold text-gray-900 pl-3">
+                {user?.firstName} {user?.lastName}
+              </h1>
+              <p className="text-gray-600 mt-1 pl-3 text-sm">{user?.email}</p>
+            </div>
+            <div className="bg-white rounded-xs shadow-sm border border-gray-300 overflow-hidden">
               {/* Sidebar Menu */}
               <nav className="divide-y divide-gray-200">
                 <button
@@ -130,13 +120,13 @@ const UserDashboard: React.FC = () => {
               <div className="p-4 border-t border-gray-200 space-y-2">
                 <button
                   onClick={handleDeleteAccount}
-                  className="w-full px-4 py-2 text-red-600 border border-red-600 rounded-md hover:bg-red-50 transition-colors text-sm font-medium"
+                  className="w-full px-4 py-2 text-red-600 border border-red-600 rounded-xs hover:bg-red-500 hover:text-white transition-colors text-sm font-medium"
                 >
                   DELETE MY ACCOUNT
                 </button>
                 <button
                   onClick={handleLogout}
-                  className="w-full px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors text-sm font-medium"
+                  className="w-full px-4 py-2 text-red-600 border border-red-300 rounded-xs hover:bg-red-500 hover:text-white transition-colors text-sm font-medium"
                 >
                   LOGOUT
                 </button>
@@ -146,7 +136,7 @@ const UserDashboard: React.FC = () => {
 
           {/* Right Content Area */}
           <div className="flex-1">
-            <div className="bg-white rounded-lg shadow-sm border p-6">
+            <div className="">
               {activeTab === "profile" && <EditProfile user={user} />}
               {activeTab === "orders" && <Orders />}
               {activeTab === "vouchers" && <GiftVouchers />}

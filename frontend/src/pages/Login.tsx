@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "../auth/AuthContext";
 import { Eye, EyeOff } from "lucide-react";
+import toast from "react-hot-toast";
 
 export const Login = () => {
   const [formData, setFormData] = useState({
@@ -18,8 +19,18 @@ export const Login = () => {
   const { user, login } = useAuth();
   const navigate = useNavigate();
 
+  // Redirect based on user role
   useEffect(() => {
-    if (user) navigate("/dashboard");
+    if (user) {
+      // Type assertion to tell TypeScript this is your user type
+      const userWithRole = user as { role?: string };
+
+      if (userWithRole.role === "admin") {
+        navigate("/admin/dashboard");
+      } else {
+        navigate("/dashboard");
+      }
+    }
   }, [user, navigate]);
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -60,7 +71,7 @@ export const Login = () => {
 
     try {
       await login(formData.email, formData.password);
-      alert("Login Successfull!");
+      toast.success("Login Successfull!");
     } catch (err: any) {
       const msg =
         err?.response?.data?.message ||

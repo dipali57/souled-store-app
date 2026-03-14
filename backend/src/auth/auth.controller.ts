@@ -7,6 +7,7 @@ import {
   Req,
   UseGuards,
   HttpCode,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDTO } from 'src/auth/dto/register.dto';
@@ -27,20 +28,35 @@ export class AuthController {
   }
 
   @Post('signin')
-  async signIn(@Body() loginDto: LoginDTO, @Res({ passthrough: true }) res: Response) {
-    const { token, user } = await this.authService.signIn(loginDto);
-    res.cookie('IsAuthenticated', true, { maxAge: 2 * 60 * 60 * 1000 });
-    res.cookie('Authentication', token, {
-    httpOnly: true,
-    maxAge: 2 * 60 * 60 * 1000,
-    sameSite: 'lax',
-    secure: false,
-    path: '/'
-  });
+  async signIn(
+    @Body() loginDto: LoginDTO,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const { accessToken, refreshToken, user } =
+      await this.authService.signIn(loginDto);
 
-  return {success: true, user};
+    res.cookie('Authentication', accessToken, {
+      httpOnly: true,
+      maxAge: 15 * 60 * 1000, // 15 minutes
+      sameSite: 'lax',
+      secure: false,
+      path: '/',
+    });
+
+    res.cookie('Refresh', refreshToken, {
+      httpOnly: true,
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      sameSite: 'lax',
+      secure: false,
+      path: '/',
+    });
+
+    // res.cookie('IsAuthenticated', true, {
+    //   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    // });
+
+    return { success: true, user };
   }
-
   @Post('forgot-password')
   async forgotPassword(@Body('email') email: string) {
     return this.authService.sendResetOTP(email);
@@ -51,18 +67,53 @@ export class AuthController {
     return this.authService.resetPassword(body);
   }
 
-  @Get('status')
-  @UseGuards(JwtAuthGuard)
-  async authStatus(@Req() req: Request, @CurrentUser() user: User) {
-    const isAuth = req.cookies['IsAuthenticated'] === 'true';
-    return { isAuthenticated: isAuth, status: !!user, user };
-  }
-
   @Post('logout')
   @HttpCode(200)
   logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     res.clearCookie('Authentication');
-    res.clearCookie('IsAuthenticated');
-    return { message: "Logout successful"}
+    // res.clearCookie('IsAuthenticated');
+    res.clearCookie('Refresh');
+    return { message: 'Logout successful' };
+  }
+
+  @Post('refresh')
+  async refresh(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const oldRefreshToken = req.cookies?.Refresh;
+
+    if (!oldRefreshToken) {
+      throw new UnauthorizedException();
+    }
+
+    const { accessToken, refreshToken } =
+      await this.authService.refreshToken(oldRefreshToken);
+
+    res.cookie('Authentication', accessToken, {
+      httpOnly: true,
+      maxAge: 15 * 60 * 1000,
+      sameSite: 'lax',
+      secure: false,
+      path: '/',
+    });
+
+    res.cookie('Refresh', refreshToken, {
+      httpOnly: true,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      sameSite: 'lax',
+      secure: false,
+      path: '/',
+    });
+
+    return { success: true };
+  }
+
+  @Get('status')
+  @UseGuards(JwtAuthGuard)
+  async authStatus(@Req() req: Request, @CurrentUser() user: User) {
+    // const isAuth = req.cookies['IsAuthenticated'] === 'true';
+    // return { isAuthenticated: isAuth, status: !!user, user };
+     return { status: true, user };
   }
 }

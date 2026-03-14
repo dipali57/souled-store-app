@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Order } from './entities/order.entity';
@@ -10,7 +14,7 @@ import { UpdateOrderDto } from './dto/update-order.dto';
 @Injectable()
 export class OrdersService {
   constructor(
-    @InjectRepository(Order) 
+    @InjectRepository(Order)
     private readonly ordersRepo: Repository<Order>,
     private readonly cartService: CartService,
     private readonly orderItemsService: OrderItemService,
@@ -36,16 +40,30 @@ export class OrdersService {
     });
   }
 
-  async checkout(user: User) {
+  async checkout(user: User, cartItemIds: number[]) {
     const cart = await this.cartService.getUserCart(user);
+
     if (!cart || cart.cartItems.length === 0) {
       throw new NotFoundException('Cart is empty or not found');
     }
 
-    let totalAmount = 0;
-    for (const item of cart.cartItems) {
-      totalAmount += item.quantity * item.product.price;
+    // Filter only selected cart items
+    const selectedCartItems = cart.cartItems.filter((item) =>
+      cartItemIds.includes(+item.id),
+    );
+
+    if (selectedCartItems.length === 0) {
+      throw new BadRequestException('No valid cart items selected');
     }
+
+    const subtotal = selectedCartItems.reduce(
+      (sum, item) => sum + item.product.price * item.quantity,
+      0,
+    );
+
+    const gstRate = 0.18;
+    const gstAmount = subtotal * gstRate;
+    const totalAmount = subtotal + gstAmount;
 
     const order = this.ordersRepo.create({
       user: { id: user.id },
@@ -55,17 +73,21 @@ export class OrdersService {
 
     const savedOrder = await this.ordersRepo.save(order);
 
-    const orderItemsDtos = cart.cartItems.map((cartItem) => ({
+    const orderItemsDtos = selectedCartItems.map((cartItem) => ({
       orderId: savedOrder.id,
       productId: +cartItem.product.id,
       quantity: cartItem.quantity,
     }));
 
     await this.orderItemsService.createOrderItems(orderItemsDtos);
-    await this.cartService.clearCart(user.id);
+
+    // remove only selected cart items
+    await this.cartService.removeMultipleCartItems(cartItemIds, user);
+
     const orderWithItems = await this.orderItemsService.findOrderItemsByOrderId(
       savedOrder.id,
     );
+
     return { ...savedOrder, orderItems: orderWithItems };
   }
 

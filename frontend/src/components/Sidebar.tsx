@@ -42,7 +42,7 @@ export const Sidebar = ({ isOpen, onClose }: Props) => {
         {/* User Info - Only if logged in */}
         {user && (
           <div className="p-5 border-b bg-gray-50">
-            <p className="font-semibold">Welcome, {user.name}!</p>
+            <p className="font-semibold">Welcome, {user.firstName}!</p>
             <p className="text-sm text-gray-600">{user.email}</p>
             {user.role === "admin" && (
               <span className="inline-block mt-2 bg-red-100 text-red-800 text-xs px-2 py-1 rounded">

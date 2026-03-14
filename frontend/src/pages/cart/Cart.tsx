@@ -1,191 +1,280 @@
-import { useEffect, useState } from "react";
-import { BASE_URL } from "../../api/axios";
+import { useEffect, useCallback, useState } from "react";
+import { Navigate, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import toast from "react-hot-toast";
 import {
-  getUserCart,
-  removeFromCart,
-  updateQuantityFromCart,
-} from "../../api/cart.api";
-import { useNavigate } from "react-router-dom";
-import type { CartItem } from "../../types";
-import { useGetUserCartQuery } from "./redux/cart.api";
+  useGetUserCartQuery,
+  useRemoveFromCartMutation,
+  useUpdateQuantityFromCartMutation,
+  type CartItem,
+} from "./redux/cart.api";
+import { useCart } from "./hooks/useCart";
+import { openCartDrawer } from "./redux/cart.slice";
+import { CartItemCard } from "./components/CartItemCard";
+import { BillingSection } from "./components/BillingSection";
+import { useCheckoutMutation } from "../orders/redux/orders.api";
+import { useAddToWishlistMutation } from "../wishlist/redux/wishlist.api";
+import { useAuth } from "../../auth/AuthContext";
 
-export const Cart = () => {
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+export const LoadingState = () => (
+  <div className="flex items-center justify-center min-h-[70vh]">
+    <div className="text-center">
+      <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-teal-700 border-r-transparent" />
+      <p className="mt-4 text-gray-600">Loading your cart...</p>
+    </div>
+  </div>
+);
 
-  let { data, isLoading } = useGetUserCartQuery();
+export const EmptyCart = () => {
   const navigate = useNavigate();
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchCart();
+    // Fetch categories from API
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch(
+          "https://fakestoreapi.com/products/categories",
+        );
+        const data = await response.json();
+        setCategories(data);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCategories();
   }, []);
-
-  const fetchCart = async () => {
-    try {
-      const res = await getUserCart();
-      setCartItems(res.data.cartItems || []);
-    } finally {
-      isLoading = false;
-    }
-  };
-
-  // quantity update
-  const updateQuantity = async (productId: number, qty: number) => {
-    if (qty <= 0) return;
-    await updateQuantityFromCart({ productId, quantity: qty });
-    fetchCart();
-  };
-
-  // remove
-  const removeItem = async (productId: number) => {
-    await removeFromCart(productId);
-    fetchCart();
-  };
-
-  const subtotal = data?.totalPrice ?? 0;
-  const gst = subtotal * 0.05;
-  const total = subtotal + gst;
-
-  if (isLoading) return <div className="p-10">Loading cart...</div>;
-
   return (
-    <div>
-      {cartItems.length === 0 ? (
-        <div className=" min-h-[70vh] mt-50 text-center items-center justify-center">
+    <div className="flex flex-col min-h-[70vh] mt-10 text-center px-4 max-w-[1200px] mx-auto w-full">
+      {/* Top Section */}
+      <div className="flex-1 flex items-center justify-center">
+        <div>
           <p className="text-2xl font-bold mb-4">
             Your Shopping Cart is empty 🛒
           </p>
-
-          <p className="text-gray-600 mb-6">
+          <p className="text-gray-600">
             Please add something soon… carts have feelings too 🙂
           </p>
-
-          <button
-            onClick={() => navigate("/product")}
-            className="bg-black text-white px-6 py-3 rounded font-semibold hover:bg-gray-800 transition"
-          >
-            Continue Shopping
-          </button>
         </div>
-      ) : (
-        <div className="max-w-7xl mx-auto p-8 bg-gray-50 min-h-screen">
-          <div className="grid md:grid-cols-3 gap-8">
-            {/* LEFT CART */}
-            <div className="md:col-span-2 space-y-6">
-              {cartItems.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex gap-6 bg-white p-6 rounded-lg border"
+      </div>
+
+      {/* Category Section - with light gray background */}
+      <div className="flex-1 flex items-center justify-center">
+        <div className="bg-gray-100 rounded-lg p-6 w-full max-w-md">
+          <h3 className="text-lg font-semibold mb-3 text-center">
+            Popular Categories
+          </h3>
+
+          {loading ? (
+            <p className="text-gray-500 text-center">Loading categories...</p>
+          ) : (
+            <div className="flex flex-wrap justify-center gap-2">
+              {categories.map((category, index) => (
+                <button
+                  key={index}
+                  onClick={() => navigate(`/product?category=${category}`)}
+                  className="bg-white border border-gray-200 text-black px-3 py-1.5 rounded text-sm font-medium capitalize hover:bg-gray-50 transition-colors"
                 >
-                  <input type="checkbox" className="mt-2" />
-
-                  {/* IMAGE */}
-                  <img
-                    src={`${BASE_URL}${item.product.imageUrl}`}
-                    className="w-36 h-44 object-cover rounded"
-                  />
-
-                  {/* DETAILS */}
-                  <div className="flex-1">
-                    <h2 className="font-semibold text-lg">
-                      {item.product.name}
-                    </h2>
-
-                    <p className="text-gray-500 text-sm">
-                      ₹{Number(item.product.price).toLocaleString()}
-                    </p>
-
-                    <div className="flex gap-4 mt-3">
-                      <select className="border rounded px-3 py-1">
-                        <option>Size: Select</option>
-                        <option>S</option>
-                        <option>M</option>
-                        <option>L</option>
-                      </select>
-
-                      {/* QTY */}
-                      <select
-                        value={item.quantity}
-                        onChange={(e) =>
-                          updateQuantity(
-                            item.product.id,
-                            Number(e.target.value),
-                          )
-                        }
-                        className="border rounded px-3 py-1"
-                      >
-                        {[...Array(10)].map((_, i) => (
-                          <option key={i + 1} value={i + 1}>
-                            Qty:{i + 1}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {/* DELIVERY */}
-                    {/* <p className="text-sm mt-3">
-                    Estimated Delivery by <b>23 Feb</b>
-                  </p> */}
-
-                    {/* STOCK WARNING */}
-                    {item.product.stock <= 5 && (
-                      <p className="text-red-500 text-sm">
-                        Hurry! Only {item.product.stock} in stock
-                      </p>
-                    )}
-
-                    {/* BUTTONS */}
-                    <div className="flex gap-4 mt-5">
-                      <button
-                        onClick={() => removeItem(item.product.id)}
-                        className="border px-6 py-2 rounded text-sm hover:bg-gray-100"
-                      >
-                        REMOVE
-                      </button>
-
-                      <button className="border px-6 py-2 rounded text-sm hover:bg-gray-100">
-                        MOVE TO WISHLIST
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                  {category}
+                </button>
               ))}
             </div>
+          )}
+        </div>
+      </div>
+      {/* Buttons Section */}
+      <div className="flex-1 flex items-center justify-center">
+        <div className="flex items-center justify-center gap-5">
+          <button
+            onClick={() => navigate("/product")}
+            className="bg-teal-50 text-teal-700 text-xs py-2 px-1 border rounded font-bold w-36"
+          >
+            CONTINUE SHOPPING
+          </button>
+          <button
+            onClick={() => navigate("/login")}
+            className="bg-teal-700 text-white text-xs py-2 px-2 rounded font-bold w-36"
+          >
+            LOGIN
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
-            {/* BILL PANEL */}
-            <div className="bg-white border rounded-lg p-6 h-fit">
-              <h3 className="font-semibold mb-5">BILLING DETAILS</h3>
+export const Cart = () => {
+  // RTK Queries
+  const { user } = useAuth();
+  const { data, isLoading, refetch, error } = useGetUserCartQuery(undefined, {skip: !user});
+  const [removeFromCart] = useRemoveFromCartMutation();
+  const [updateQuantity] = useUpdateQuantityFromCartMutation();
+  const [checkout, { isLoading: isCheckingOut }] = useCheckoutMutation();
+  const [addToWishlist] = useAddToWishlistMutation();
 
-              <div className="space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <span>Cart Total</span>
-                  <span>₹{subtotal.toFixed(2)}</span>
-                </div>
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-                <div className="flex justify-between">
-                  <span>GST</span>
-                  <span>₹{gst.toFixed(2)}</span>
-                </div>
+  // Custom hook for cart logic
+  const {
+    selectedItems,
+    selectAll,
+    totals,
+    handleSelectItem,
+    handleSelectAll,
+    clearSelectedItem,
+    selectedCount,
+  } = useCart(data?.cartItems);
 
-                <div className="flex justify-between">
-                  <span>Shipping Charges</span>
-                  <span className="text-green-600">Free</span>
-                </div>
+  // Effects
+  useEffect(() => {
+    dispatch(openCartDrawer());
+  }, [dispatch]);
 
-                <hr />
+  
+  // Handlers
+  const handleUpdateQuantity = useCallback(
+    async (productId: number, quantity: number) => {
+      if (quantity <= 0) return;
+      try {
+        await updateQuantity({ productId, quantity }).unwrap();
+        await refetch();
+        toast.success("Quantity updated");
+      } catch (error) {
+        toast.error("Failed to update quantity");
+      }
+    },
+    [updateQuantity, refetch],
+  );
+  const handleRemoveItem = useCallback(
+    async (item: CartItem) => {
+      try {
+        console.log("Attempting to remove item:", item);
+        console.log("Product ID being sent:", item.product.id); // This should be 10, not 30
 
-                <div className="flex justify-between font-bold text-base">
-                  <span>Total Amount</span>
-                  <span>₹{total.toFixed(2)}</span>
-                </div>
-              </div>
+        // Send the product ID, not the cart item ID
+        await removeFromCart(item.product.id).unwrap();
 
-              <button className="w-full mt-6 bg-teal-700 text-white py-3 rounded font-semibold">
-                PLACE ORDER
-              </button>
+        await refetch();
+        clearSelectedItem(item.id);
+        toast.success("Item removed");
+      } catch (error: any) {
+        console.error("Full remove error:", error);
+        toast.error(error?.data?.message || "Failed to remove item");
+      }
+    },
+    [removeFromCart, refetch, clearSelectedItem],
+  );
+  const handleMoveToWishlist = useCallback(
+    async (item: CartItem) => {
+      try {
+        console.log("Moving to wishlist - Product ID:", item.product.id);
+
+        // Step 1: Add to wishlist (using AddToWishlistDto)
+        await addToWishlist({ productId: item.product.id }).unwrap();
+
+        // Step 2: Remove from cart (using productId)
+        await removeFromCart(item.product.id).unwrap();
+
+        // Step 3: Clear from local state
+        clearSelectedItem(item.id);
+
+        // Step 4: Refetch cart data
+        await refetch();
+
+        toast.success("Moved to wishlist ❤️");
+      } catch (error: any) {
+        console.error("Move to wishlist error:", error);
+
+        // More specific error messages
+        if (error?.data?.message) {
+          toast.error(error.data.message);
+        } else {
+          toast.error("Failed to move to wishlist");
+        }
+      }
+    },
+    [addToWishlist, removeFromCart, refetch, clearSelectedItem],
+  );
+  const handlePlaceOrder = useCallback(async () => {
+    if (selectedItems.size === 0) {
+      toast.error("Please select at least one item");
+      return;
+    }
+    try {
+      const cartItemIds = Array.from(selectedItems);
+      console.log("cartItemIds", cartItemIds);
+      await checkout({ cartItemIds }).unwrap();
+      await refetch();
+      toast.success("Order placed successfully 🎉");
+      navigate("/orders"); // redirect to orders page
+      // navigate("/checkout", { state: { selectedItems: selectedItemsData, selectedIds: Array.from(selectedItems), }, });
+    } catch (error) {
+      toast.error("Checkout failed");
+    }
+  }, [selectedItems, checkout, navigate]);
+
+  // Loading state
+  if (isLoading) return <LoadingState />;
+
+  if (error && 'status' in error && error.status === 401) {
+    return <Navigate to="/login" />;
+  }
+  // Empty cart
+  if (!data?.cartItems?.length) return <EmptyCart />;
+
+  const cartItems = data.cartItems;
+
+  return (
+    <div className="max-w-7xl mx-auto p-8 bg-gray-50 min-h-screen">
+      <div className="grid md:grid-cols-3 gap-8">
+        {/* Left Section - Cart Items */}
+        <div className="md:col-span-2 space-y-2">
+          <div className="bg-white p-4 rounded-lg border border-gray-200 flex justify-between items-center">
+            <div className="flex items-center gap-4">
+              <input
+                type="checkbox"
+                className="w-5 h-5 cursor-pointer"
+                checked={selectAll}
+                onChange={handleSelectAll}
+                aria-label="Select all items"
+              />
+              <span className="font-medium">
+                {selectedCount}/{cartItems.length} ITEMS SELECTED (₹
+                {totals.subtotal})
+              </span>
             </div>
           </div>
+
+          {/* Cart Items */}
+          {cartItems.map((item: CartItem) => (
+            <CartItemCard
+              key={item.id}
+              item={item}
+              isSelected={selectedItems.has(item.id)}
+              onSelect={handleSelectItem}
+              onUpdateQuantity={handleUpdateQuantity}
+              onRemove={() => handleRemoveItem(item)}
+              onMoveToWishlist={() => handleMoveToWishlist(item)}
+            />
+          ))}
+
+          {/* Promotional Sections */}
+          {/* <PromoSections /> */}
         </div>
-      )}
+
+        {/* Right Section - Billing */}
+        <BillingSection
+          totals={totals}
+          onPlaceOrder={handlePlaceOrder}
+          itemCount={selectedCount}
+          isLoading={isCheckingOut}
+        />
+      </div>
     </div>
   );
 };

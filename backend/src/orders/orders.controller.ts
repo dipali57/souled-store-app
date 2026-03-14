@@ -1,4 +1,13 @@
-import { Controller, Post, Get, Request, UseGuards, Patch, Param, Body } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Request,
+  UseGuards,
+  Patch,
+  Param,
+  Body,
+} from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guards';
 import { CurrentUser } from 'src/auth/decorators/user.decorator';
@@ -7,6 +16,7 @@ import { Roles } from 'src/auth/decorators/roles.decorator';
 import { RolesGuard } from 'src/auth/guards/roles.guards';
 import { Role } from 'src/common/enums/user-role.enum';
 import { UpdateOrderDto } from './dto/update-order.dto';
+import { CheckoutDto } from './dto/checkout.dto';
 
 @Controller('orders')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -16,7 +26,7 @@ export class OrdersController {
   //Fetch Login User Orders
   @Get()
   @Roles(Role.USER)
-  async findByUserId(@CurrentUser() user:User) {
+  async findByUserId(@CurrentUser() user: User) {
     return this.ordersService.findByUserId(user);
   }
 
@@ -29,9 +39,8 @@ export class OrdersController {
 
   //Place an order (checkout)
   @Post('checkout')
-  @Roles(Role.USER)
-  async checkout(@CurrentUser() user: User) {
-    return this.ordersService.checkout(user);
+  checkout(@CurrentUser() user: User, @Body() checkoutDto: CheckoutDto) {
+    return this.ordersService.checkout(user, checkoutDto.cartItemIds);
   }
 
   @Patch(':id/status')

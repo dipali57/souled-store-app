@@ -4,14 +4,16 @@ import {
   useAddToWishlistMutation,
   useRemoveFromWishlistMutation,
 } from "../redux/wishlist.api";
+import { useAuth } from "../../../auth/AuthContext";
 
 export const useWishlist = () => {
+  const { user } = useAuth();
   const {
     data: wishlistItems = [],
     isLoading,
     error,
     refetch,
-  } = useGetMyWishlistQuery();
+  } = useGetMyWishlistQuery(undefined, {skip: !user});
 
   const [addToWishlist, { isLoading: isAdding }] = useAddToWishlistMutation();
   const [removeFromWishlist, { isLoading: isRemoving }] =

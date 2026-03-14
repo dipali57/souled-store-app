@@ -3,8 +3,8 @@ import React from 'react';
 const GiftVouchers: React.FC = () => {
   return (
     <div>
-      <h2 className="text-xl font-semibold text-gray-900 mb-6">Gift Vouchers</h2>
-      <div className="bg-gray-50 p-6 rounded-lg">
+      <h2 className="text-xl font-semibold text-gray-900 mb-8">Gift Vouchers</h2>
+      <div className="bg-gray-50 p-6 rounded-lg border border-gray-300 bg-white ">
         <div className="flex justify-between items-center">
           <div>
             <p className="text-gray-600">Active TSS Points</p>
